@@ -9,18 +9,21 @@ interface AdminPanelProps {
   siteIcon: string;
   mainTitle: string;
   subTitle: string;
-  onSave: (prizes: Prize[], showHistory: boolean, siteName: string, siteIcon: string, mainTitle: string, subTitle: string) => void;
+  adminPassword?: string;
+  onSave: (prizes: Prize[], showHistory: boolean, siteName: string, siteIcon: string, mainTitle: string, subTitle: string, adminPassword?: string) => void;
   onClose: () => void;
 }
 
-export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, siteName, siteIcon, mainTitle, subTitle, onSave, onClose }) => {
+export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, siteName, siteIcon, mainTitle, subTitle, adminPassword, onSave, onClose }) => {
   const [editedPrizes, setEditedPrizes] = useState<Prize[]>(prizes);
   const [editedShowHistory, setEditedShowHistory] = useState(showHistory);
   const [editedSiteName, setEditedSiteName] = useState(siteName);
   const [editedSiteIcon, setEditedSiteIcon] = useState(siteIcon);
   const [editedMainTitle, setEditedMainTitle] = useState(mainTitle);
   const [editedSubTitle, setEditedSubTitle] = useState(subTitle);
+  const [editedAdminPassword, setEditedAdminPassword] = useState(adminPassword || '');
   const [showWeightWarning, setShowWeightWarning] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
   const [prizeToDelete, setPrizeToDelete] = useState<number | null>(null);
 
   const handleChange = (index: number, field: keyof Prize, value: string | number) => {
@@ -54,6 +57,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
   };
 
   const handleSave = () => {
+    const hasEmptyName = editedPrizes.some(p => !p.name.trim());
+    if (hasEmptyName) {
+      setValidationError("奖项名称不能为空");
+      return;
+    }
+
+    const hasInvalidWeight = editedPrizes.some(p => Number(p.weight) <= 0);
+    if (hasInvalidWeight) {
+      setValidationError("奖项权重必须为大于0的正数");
+      return;
+    }
+
+    setValidationError(null);
+
     const totalWeight = editedPrizes.reduce((sum, p) => sum + Number(p.weight), 0);
     
     if (totalWeight !== 100) {
@@ -61,11 +78,27 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
       return;
     }
 
-    onSave(editedPrizes, editedShowHistory, editedSiteName, editedSiteIcon, editedMainTitle, editedSubTitle);
+    onSave(editedPrizes, editedShowHistory, editedSiteName, editedSiteIcon, editedMainTitle, editedSubTitle, editedAdminPassword);
     onClose();
   };
 
   const handleAutoFixAndSave = () => {
+    const hasEmptyName = editedPrizes.some(p => !p.name.trim());
+    if (hasEmptyName) {
+      setShowWeightWarning(false);
+      setValidationError("奖项名称不能为空");
+      return;
+    }
+
+    const hasInvalidWeight = editedPrizes.some(p => Number(p.weight) <= 0);
+    if (hasInvalidWeight) {
+      setShowWeightWarning(false);
+      setValidationError("奖项权重必须为大于0的正数");
+      return;
+    }
+
+    setValidationError(null);
+
     const totalWeight = editedPrizes.reduce((sum, p) => sum + Number(p.weight), 0);
     let normalizedPrizes = editedPrizes;
     
@@ -87,68 +120,81 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
       });
     }
 
-    onSave(normalizedPrizes, editedShowHistory, editedSiteName, editedSiteIcon, editedMainTitle, editedSubTitle);
+    onSave(normalizedPrizes, editedShowHistory, editedSiteName, editedSiteIcon, editedMainTitle, editedSubTitle, editedAdminPassword);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-          <h2 className="text-xl font-semibold text-slate-800">奖项管理 (Admin)</h2>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[90vh]">
+        <div className="p-4 sm:p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+          <h2 className="text-lg sm:text-xl font-semibold text-slate-800">奖项管理 (Admin)</h2>
           <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
             <X className="w-5 h-5 text-slate-500" />
           </button>
         </div>
 
-        <div className="p-6 overflow-y-auto flex-1">
-          <div className="mb-8 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
+        <div className="p-4 sm:p-6 overflow-y-auto flex-1">
+          <div className="mb-6 sm:mb-8 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
             <h3 className="text-sm font-bold text-slate-800 mb-4 uppercase tracking-wider">全局设置</h3>
             
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">网站名称</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">网站名称</label>
                   <input
                     type="text"
                     value={editedSiteName}
                     onChange={(e) => setEditedSiteName(e.target.value)}
                     placeholder="例如：Lucky Draw"
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                    className="w-full px-3 py-2.5 sm:py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">网站图标 (文字或Emoji)</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">网站图标 (文字或Emoji)</label>
                   <input
                     type="text"
                     value={editedSiteIcon}
                     onChange={(e) => setEditedSiteIcon(e.target.value)}
                     placeholder="例如：L 或 🎁"
                     maxLength={2}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                    className="w-full px-3 py-2.5 sm:py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">主标题</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">主标题</label>
                   <input
                     type="text"
                     value={editedMainTitle}
                     onChange={(e) => setEditedMainTitle(e.target.value)}
                     placeholder="例如：今日好运，一触即发"
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                    className="w-full px-3 py-2.5 sm:py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">副标题</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">副标题</label>
                   <input
                     type="text"
                     value={editedSubTitle}
                     onChange={(e) => setEditedSubTitle(e.target.value)}
                     placeholder="例如：点击中心按钮，开启你的专属惊喜"
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                    className="w-full px-3 py-2.5 sm:py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">管理员密码</label>
+                  <input
+                    type="text"
+                    value={editedAdminPassword}
+                    onChange={(e) => setEditedAdminPassword(e.target.value)}
+                    placeholder="设置新的管理密码"
+                    className="w-full px-3 py-2.5 sm:py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                   />
                 </div>
               </div>
@@ -180,69 +226,123 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
           </div>
 
           <h3 className="text-sm font-bold text-slate-800 mb-4 uppercase tracking-wider">奖项设置</h3>
-          <div className="grid grid-cols-12 gap-4 mb-4 text-sm font-medium text-slate-500 px-2">
-            <div className="col-span-1 text-center">#</div>
-            <div className="col-span-3">奖项名称</div>
-            <div className="col-span-3">权重 (0-100)</div>
-            <div className="col-span-2 text-center">背景色</div>
-            <div className="col-span-2 text-center">文字色</div>
-            <div className="col-span-1 text-center">操作</div>
-          </div>
+          
+          <div className="space-y-4">
+            {/* Desktop Header */}
+            <div className="hidden sm:grid grid-cols-12 gap-4 mb-2 text-sm font-medium text-slate-500 px-2">
+              <div className="col-span-1 text-center">#</div>
+              <div className="col-span-4">奖项名称</div>
+              <div className="col-span-3">权重</div>
+              <div className="col-span-1 text-center">背景</div>
+              <div className="col-span-1 text-center">文字</div>
+              <div className="col-span-2 text-center">操作</div>
+            </div>
 
-          <div className="space-y-3">
-            {editedPrizes.map((prize, index) => (
-              <div key={prize.id} className="grid grid-cols-12 gap-4 items-center bg-slate-50 p-2 rounded-lg border border-slate-100">
-                <div className="col-span-1 text-center text-slate-400 font-medium">{index + 1}</div>
-                <div className="col-span-3">
-                  <input
-                    type="text"
-                    value={prize.name}
-                    onChange={(e) => handleChange(index, 'name', e.target.value)}
-                    className="w-full px-3 py-1.5 rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                  />
+            <div className="space-y-3">
+              {editedPrizes.map((prize, index) => (
+                <div key={prize.id} className="flex flex-col sm:grid sm:grid-cols-12 gap-3 sm:gap-4 items-start sm:items-center bg-slate-50 p-4 sm:p-2 rounded-xl sm:rounded-lg border border-slate-200 sm:border-slate-100 shadow-sm sm:shadow-none">
+                  
+                  {/* Mobile Header & Delete Button */}
+                  <div className="flex justify-between items-center w-full sm:hidden mb-1">
+                    <span className="text-sm font-bold text-slate-700">奖项 #{index + 1}</span>
+                    <button
+                      onClick={() => handleRemovePrize(index)}
+                      disabled={editedPrizes.length <= 2}
+                      className={`p-2 transition-colors ${
+                        editedPrizes.length <= 2 
+                          ? 'text-slate-300 cursor-not-allowed' 
+                          : 'text-red-500 hover:bg-red-50 rounded-lg'
+                      }`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Desktop Index */}
+                  <div className="hidden sm:block col-span-1 text-center text-slate-400 font-medium">{index + 1}</div>
+                  
+                  {/* Name */}
+                  <div className="w-full sm:col-span-4">
+                    <label className="block text-xs font-medium text-slate-500 mb-1.5 sm:hidden">名称</label>
+                    <input
+                      type="text"
+                      value={prize.name}
+                      onChange={(e) => handleChange(index, 'name', e.target.value)}
+                      className="w-full px-3 py-2.5 sm:py-1.5 rounded-lg sm:rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                    />
+                  </div>
+                  
+                  {/* Weight */}
+                  <div className="w-full sm:col-span-3">
+                    <label className="block text-xs font-medium text-slate-500 mb-1.5 sm:hidden">权重 (0-100)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={prize.weight}
+                      onChange={(e) => handleChange(index, 'weight', Number(e.target.value))}
+                      className="w-full px-3 py-2.5 sm:py-1.5 rounded-lg sm:rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                    />
+                  </div>
+                  
+                  {/* Colors - Mobile */}
+                  <div className="flex gap-4 w-full sm:hidden mt-1">
+                    <div className="flex-1 flex flex-col">
+                      <label className="block text-xs font-medium text-slate-500 mb-1.5">背景色</label>
+                      <input
+                        type="color"
+                        value={prize.color}
+                        onChange={(e) => handleChange(index, 'color', e.target.value)}
+                        className="w-full h-10 rounded-lg cursor-pointer border-0 p-0"
+                      />
+                    </div>
+                    <div className="flex-1 flex flex-col">
+                      <label className="block text-xs font-medium text-slate-500 mb-1.5">文字色</label>
+                      <input
+                        type="color"
+                        value={prize.textColor}
+                        onChange={(e) => handleChange(index, 'textColor', e.target.value)}
+                        className="w-full h-10 rounded-lg cursor-pointer border-0 p-0"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Colors - Desktop */}
+                  <div className="hidden sm:flex col-span-1 justify-center">
+                    <input
+                      type="color"
+                      value={prize.color}
+                      onChange={(e) => handleChange(index, 'color', e.target.value)}
+                      className="w-8 h-8 rounded cursor-pointer border-0 p-0"
+                    />
+                  </div>
+                  <div className="hidden sm:flex col-span-1 justify-center">
+                    <input
+                      type="color"
+                      value={prize.textColor}
+                      onChange={(e) => handleChange(index, 'textColor', e.target.value)}
+                      className="w-8 h-8 rounded cursor-pointer border-0 p-0"
+                    />
+                  </div>
+                  
+                  {/* Desktop Delete */}
+                  <div className="hidden sm:flex col-span-2 justify-center">
+                    <button
+                      onClick={() => handleRemovePrize(index)}
+                      disabled={editedPrizes.length <= 2}
+                      className={`p-1.5 transition-colors ${
+                        editedPrizes.length <= 2 
+                          ? 'text-slate-300 cursor-not-allowed' 
+                          : 'text-red-400 hover:text-red-600 hover:bg-red-50 rounded'
+                      }`}
+                      title={editedPrizes.length <= 2 ? "至少需要保留两个奖项" : "删除奖项"}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-                <div className="col-span-3">
-                  <input
-                    type="number"
-                    min="0"
-                    max="100"
-                    value={prize.weight}
-                    onChange={(e) => handleChange(index, 'weight', Number(e.target.value))}
-                    className="w-full px-3 py-1.5 rounded-md border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                  />
-                </div>
-                <div className="col-span-2 flex justify-center">
-                  <input
-                    type="color"
-                    value={prize.color}
-                    onChange={(e) => handleChange(index, 'color', e.target.value)}
-                    className="w-8 h-8 rounded cursor-pointer border-0 p-0"
-                  />
-                </div>
-                <div className="col-span-2 flex justify-center">
-                  <input
-                    type="color"
-                    value={prize.textColor}
-                    onChange={(e) => handleChange(index, 'textColor', e.target.value)}
-                    className="w-8 h-8 rounded cursor-pointer border-0 p-0"
-                  />
-                </div>
-                <div className="col-span-1 flex justify-center">
-                  <button
-                    onClick={() => handleRemovePrize(index)}
-                    disabled={editedPrizes.length <= 2}
-                    className={`p-1 transition-colors ${
-                      editedPrizes.length <= 2 
-                        ? 'text-slate-300 cursor-not-allowed' 
-                        : 'text-red-400 hover:text-red-600 hover:bg-red-50 rounded'
-                    }`}
-                    title={editedPrizes.length <= 2 ? "至少需要保留两个奖项" : "删除奖项"}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
           
           <button
@@ -256,18 +356,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
           <div className="mt-6 text-sm text-slate-500 bg-blue-50 p-3 rounded-lg border border-blue-100">
             提示：权重总和必须为 100。至少需要保留 2 个奖项。
           </div>
+          
+          {validationError && (
+            <div className="mt-4 text-sm text-red-600 bg-red-50 p-3 rounded-lg border border-red-100 flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4" />
+              {validationError}
+            </div>
+          )}
         </div>
 
-        <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+        <div className="p-4 sm:p-6 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg font-medium transition-colors"
+            className="px-4 py-2 text-sm sm:text-base text-slate-600 hover:bg-slate-200 rounded-lg font-medium transition-colors"
           >
             取消
           </button>
           <button
             onClick={handleSave}
-            className="px-6 py-2 bg-slate-800 text-white rounded-lg font-medium hover:bg-slate-700 transition-colors flex items-center gap-2 shadow-sm"
+            className="px-5 sm:px-6 py-2 text-sm sm:text-base bg-slate-800 text-white rounded-lg font-medium hover:bg-slate-700 transition-colors flex items-center gap-2 shadow-sm"
           >
             <Save className="w-4 h-4" />
             保存设置
@@ -275,12 +382,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
         </div>
 
         {showWeightWarning && (
-          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-10 flex items-center justify-center p-6">
-            <div className="bg-white border border-slate-200 shadow-xl rounded-2xl p-6 max-w-sm w-full text-center">
-              <div className="w-12 h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle className="w-6 h-6" />
+          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-10 flex items-center justify-center p-4 sm:p-6">
+            <div className="bg-white border border-slate-200 shadow-xl rounded-2xl p-5 sm:p-6 max-w-sm w-full text-center">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-800 mb-2">权重总和不为 100</h3>
+              <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-2">权重总和不为 100</h3>
               <p className="text-sm text-slate-600 mb-6">
                 当前所有奖项的权重总和为 <span className="font-bold text-slate-900">{editedPrizes.reduce((sum, p) => sum + Number(p.weight), 0)}</span>。大转盘需要权重总和严格等于 100 才能正常工作。
               </p>
@@ -303,12 +410,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
         )}
 
         {prizeToDelete !== null && (
-          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-20 flex items-center justify-center p-6">
-            <div className="bg-white border border-slate-200 shadow-xl rounded-2xl p-6 max-w-sm w-full text-center">
-              <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                <AlertTriangle className="w-6 h-6" />
+          <div className="absolute inset-0 bg-white/90 backdrop-blur-sm z-20 flex items-center justify-center p-4 sm:p-6">
+            <div className="bg-white border border-slate-200 shadow-xl rounded-2xl p-5 sm:p-6 max-w-sm w-full text-center">
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <h3 className="text-lg font-bold text-slate-800 mb-2">确认删除奖项？</h3>
+              <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-2">确认删除奖项？</h3>
               <p className="text-sm text-slate-600 mb-6">
                 您确定要删除奖项“<span className="font-bold text-slate-900">{editedPrizes[prizeToDelete]?.name}</span>”吗？此操作无法撤销。
               </p>

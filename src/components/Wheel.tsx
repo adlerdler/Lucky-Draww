@@ -33,14 +33,14 @@ export const Wheel: React.FC<WheelProps> = ({ prizes, isSpinning, rotation, onSp
   };
 
   return (
-    <div className="relative w-full max-w-[320px] aspect-square mx-auto">
+    <div className="relative w-full max-w-[300px] sm:max-w-[340px] aspect-square mx-auto">
       {/* Pointer */}
-      <div className="absolute -top-3 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
-        <div className="w-6 h-6 bg-slate-800 rotate-45 rounded-sm shadow-md" />
+      <div className="absolute -top-3 sm:-top-4 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center">
+        <div className="w-6 h-6 sm:w-7 sm:h-7 bg-slate-800 rotate-45 rounded-sm shadow-md" />
       </div>
 
       {/* Wheel Container */}
-      <div className="relative w-full h-full rounded-full shadow-2xl bg-white p-2">
+      <div className="relative w-full h-full rounded-full shadow-2xl bg-white p-2 sm:p-2.5">
         <motion.div
           className="w-full h-full rounded-full overflow-hidden relative border-4 border-slate-800"
           animate={{ rotate: rotation }}
@@ -86,7 +86,7 @@ export const Wheel: React.FC<WheelProps> = ({ prizes, isSpinning, rotation, onSp
         <button
           onClick={onSpin}
           disabled={isSpinning}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 rounded-full bg-slate-800 text-white font-bold text-xl shadow-xl hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed z-10 border-4 border-white flex items-center justify-center"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-slate-800 text-white font-bold text-xl sm:text-2xl shadow-xl hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed z-10 border-4 border-white flex items-center justify-center"
         >
           GO
         </button>

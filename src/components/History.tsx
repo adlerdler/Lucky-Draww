@@ -20,13 +20,13 @@ export const History: React.FC<HistoryProps> = ({ history }) => {
         <ul className="divide-y divide-slate-50">
           {history.map((item) => (
             <li key={item.id} className="flex items-center justify-between p-4 hover:bg-slate-50 transition-colors">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm">
+              <div className="flex items-center gap-3 min-w-0 flex-1 mr-4">
+                <div className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm shrink-0">
                   {item.prizeName.slice(0, 1)}
                 </div>
-                <span className="font-semibold text-slate-800">{item.prizeName}</span>
+                <span className="font-semibold text-slate-800 truncate">{item.prizeName}</span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium shrink-0">
                 <Clock className="w-3.5 h-3.5" />
                 {new Date(item.timestamp).toLocaleString('zh-CN', {
                   month: '2-digit',

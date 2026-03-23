@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Settings, Lock, X } from 'lucide-react';
+import { Settings, Lock, X, Loader2 } from 'lucide-react';
 import { Wheel } from './components/Wheel';
 import { AdminPanel } from './components/AdminPanel';
 import { ResultModal } from './components/ResultModal';
@@ -9,70 +9,54 @@ import { INITIAL_PRIZES, ADMIN_PASSWORD } from './constants';
 import { Prize, HistoryItem } from './types';
 
 export default function App() {
-  const [prizes, setPrizes] = useState<Prize[]>(() => {
-    const saved = localStorage.getItem('lucky_draw_prizes');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
-    }
-    return INITIAL_PRIZES;
-  });
+  const [isLoading, setIsLoading] = useState(true);
+  const [prizes, setPrizes] = useState<Prize[]>(INITIAL_PRIZES);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
+  const [showHistory, setShowHistory] = useState<boolean>(true);
+  const [siteName, setSiteName] = useState<string>('Lucky Draw');
+  const [siteIcon, setSiteIcon] = useState<string>('L');
+  const [mainTitle, setMainTitle] = useState<string>('今日好运，一触即发');
+  const [subTitle, setSubTitle] = useState<string>('点击中心按钮，开启你的专属惊喜');
+  const [adminPassword, setAdminPassword] = useState<string>(ADMIN_PASSWORD);
+
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
-  const [history, setHistory] = useState<HistoryItem[]>(() => {
-    const saved = localStorage.getItem('lucky_draw_history');
-    if (saved) {
-      try { return JSON.parse(saved); } catch (e) {}
-    }
-    return [];
-  });
-  const [showHistory, setShowHistory] = useState<boolean>(() => {
-    const saved = localStorage.getItem('lucky_draw_show_history');
-    if (saved !== null) {
-      return saved === 'true';
-    }
-    return true;
-  });
-  const [siteName, setSiteName] = useState<string>(() => {
-    return localStorage.getItem('lucky_draw_site_name') || 'Lucky Draw';
-  });
-  const [siteIcon, setSiteIcon] = useState<string>(() => {
-    return localStorage.getItem('lucky_draw_site_icon') || 'L';
-  });
-  const [mainTitle, setMainTitle] = useState<string>(() => {
-    return localStorage.getItem('lucky_draw_main_title') || '今日好运，一触即发';
-  });
-  const [subTitle, setSubTitle] = useState<string>(() => {
-    return localStorage.getItem('lucky_draw_sub_title') || '点击中心按钮，开启你的专属惊喜';
-  });
 
   useEffect(() => {
-    localStorage.setItem('lucky_draw_prizes', JSON.stringify(prizes));
-  }, [prizes]);
+    fetch('/api/data')
+      .then(res => res.json())
+      .then(data => {
+        if (data.prizes) setPrizes(data.prizes);
+        if (data.history) setHistory(data.history);
+        if (data.showHistory !== undefined) setShowHistory(data.showHistory);
+        if (data.siteName) setSiteName(data.siteName);
+        if (data.siteIcon) setSiteIcon(data.siteIcon);
+        if (data.mainTitle) setMainTitle(data.mainTitle);
+        if (data.subTitle) setSubTitle(data.subTitle);
+        if (data.adminPassword) setAdminPassword(data.adminPassword);
+        setIsLoading(false);
+      })
+      .catch(err => {
+        console.error('Failed to load data', err);
+        setIsLoading(false);
+      });
+  }, []);
 
   useEffect(() => {
-    localStorage.setItem('lucky_draw_history', JSON.stringify(history));
-  }, [history]);
-
-  useEffect(() => {
-    localStorage.setItem('lucky_draw_show_history', String(showHistory));
-  }, [showHistory]);
-
-  useEffect(() => {
-    localStorage.setItem('lucky_draw_site_name', siteName);
     document.title = siteName;
   }, [siteName]);
 
-  useEffect(() => {
-    localStorage.setItem('lucky_draw_site_icon', siteIcon);
-  }, [siteIcon]);
-
-  useEffect(() => {
-    localStorage.setItem('lucky_draw_main_title', mainTitle);
-  }, [mainTitle]);
-
-  useEffect(() => {
-    localStorage.setItem('lucky_draw_sub_title', subTitle);
-  }, [subTitle]);
+  const saveData = async (newData: any) => {
+    try {
+      await fetch('/api/data', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newData)
+      });
+    } catch (err) {
+      console.error('Failed to save data', err);
+    }
+  };
   
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -128,6 +112,7 @@ export default function App() {
           { id: Date.now().toString(), prizeName: wonPrize.name, timestamp: Date.now() },
           ...prev
         ].slice(0, 5);
+        saveData({ history: newHistory });
         return newHistory;
       });
     }, 7000); // Match the CSS transition duration
@@ -135,7 +120,7 @@ export default function App() {
 
   const handleAdminAuth = (e: React.FormEvent) => {
     e.preventDefault();
-    if (passwordInput === ADMIN_PASSWORD) {
+    if (passwordInput === adminPassword) {
       setIsAuthModalOpen(false);
       setIsAdminOpen(true);
       setPasswordInput('');
@@ -145,20 +130,41 @@ export default function App() {
     }
   };
 
-  const handleSaveSettings = (newPrizes: Prize[], newShowHistory: boolean, newSiteName: string, newSiteIcon: string, newMainTitle: string, newSubTitle: string) => {
+  const handleSaveSettings = (newPrizes: Prize[], newShowHistory: boolean, newSiteName: string, newSiteIcon: string, newMainTitle: string, newSubTitle: string, newAdminPassword?: string) => {
     setPrizes(newPrizes);
     setShowHistory(newShowHistory);
     setSiteName(newSiteName);
     setSiteIcon(newSiteIcon);
     setMainTitle(newMainTitle);
     setSubTitle(newSubTitle);
+    if (newAdminPassword) {
+      setAdminPassword(newAdminPassword);
+    }
+
+    saveData({
+      prizes: newPrizes,
+      showHistory: newShowHistory,
+      siteName: newSiteName,
+      siteIcon: newSiteIcon,
+      mainTitle: newMainTitle,
+      subTitle: newSubTitle,
+      ...(newAdminPassword ? { adminPassword: newAdminPassword } : {})
+    });
   };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-indigo-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-800 font-sans selection:bg-indigo-100 selection:text-indigo-900">
       {/* Header */}
-      <header className="p-6 flex justify-between items-center max-w-5xl mx-auto">
-        <h1 className="text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
+      <header className="p-4 sm:p-6 flex justify-between items-center max-w-5xl mx-auto">
+        <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900 flex items-center gap-2">
           <span className="w-8 h-8 rounded-lg bg-slate-900 text-white flex items-center justify-center text-lg">
             {siteIcon}
           </span>
@@ -174,12 +180,12 @@ export default function App() {
       </header>
 
       {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 flex flex-col items-center">
-        <div className="text-center mb-12">
-          <h2 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">
+      <main className="container mx-auto px-4 py-6 sm:py-8 flex flex-col items-center">
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 mb-3 sm:mb-4 tracking-tight">
             {mainTitle}
           </h2>
-          <p className="text-slate-500 font-medium">{subTitle}</p>
+          <p className="text-sm sm:text-base text-slate-500 font-medium">{subTitle}</p>
         </div>
 
         <Wheel
@@ -206,19 +212,19 @@ export default function App() {
             >
               <X className="w-5 h-5" />
             </button>
-            <div className="flex justify-center mb-6">
+            <div className="flex justify-center mb-4 sm:mb-6">
               <div className="w-16 h-16 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center">
                 <Lock className="w-8 h-8" />
               </div>
             </div>
-            <h3 className="text-xl font-bold text-center mb-6 text-slate-800">管理员验证</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-center mb-4 sm:mb-6 text-slate-800">管理员验证</h3>
             <form onSubmit={handleAdminAuth}>
               <input
                 type="password"
                 placeholder="请输入管理密码"
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800 mb-2 text-center text-lg tracking-widest"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800 mb-2 text-center text-base sm:text-lg tracking-widest"
                 autoFocus
               />
               {authError && <p className="text-red-500 text-sm text-center mb-4">{authError}</p>}
@@ -242,6 +248,7 @@ export default function App() {
           siteIcon={siteIcon}
           mainTitle={mainTitle}
           subTitle={subTitle}
+          adminPassword={adminPassword}
           onSave={handleSaveSettings}
           onClose={() => setIsAdminOpen(false)}
         />
@@ -253,6 +260,21 @@ export default function App() {
         prizeName={currentResult}
         onClose={() => setShowResultModal(false)}
       />
+
+      {/* Footer */}
+      <footer className="w-full py-6 mt-auto text-center text-sm text-slate-400">
+        <p>
+          &copy; 2026 版权所有{' '}
+          <a
+            href="https://blog.a1l.org"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-indigo-500 transition-colors font-medium"
+          >
+            A1L
+          </a>
+        </p>
+      </footer>
     </div>
   );
 }
