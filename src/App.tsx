@@ -38,6 +38,12 @@ export default function App() {
   const [siteIcon, setSiteIcon] = useState<string>(() => {
     return localStorage.getItem('lucky_draw_site_icon') || 'L';
   });
+  const [mainTitle, setMainTitle] = useState<string>(() => {
+    return localStorage.getItem('lucky_draw_main_title') || '今日好运，一触即发';
+  });
+  const [subTitle, setSubTitle] = useState<string>(() => {
+    return localStorage.getItem('lucky_draw_sub_title') || '点击中心按钮，开启你的专属惊喜';
+  });
 
   useEffect(() => {
     localStorage.setItem('lucky_draw_prizes', JSON.stringify(prizes));
@@ -59,6 +65,14 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('lucky_draw_site_icon', siteIcon);
   }, [siteIcon]);
+
+  useEffect(() => {
+    localStorage.setItem('lucky_draw_main_title', mainTitle);
+  }, [mainTitle]);
+
+  useEffect(() => {
+    localStorage.setItem('lucky_draw_sub_title', subTitle);
+  }, [subTitle]);
   
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -131,11 +145,13 @@ export default function App() {
     }
   };
 
-  const handleSaveSettings = (newPrizes: Prize[], newShowHistory: boolean, newSiteName: string, newSiteIcon: string) => {
+  const handleSaveSettings = (newPrizes: Prize[], newShowHistory: boolean, newSiteName: string, newSiteIcon: string, newMainTitle: string, newSubTitle: string) => {
     setPrizes(newPrizes);
     setShowHistory(newShowHistory);
     setSiteName(newSiteName);
     setSiteIcon(newSiteIcon);
+    setMainTitle(newMainTitle);
+    setSubTitle(newSubTitle);
   };
 
   return (
@@ -161,9 +177,9 @@ export default function App() {
       <main className="container mx-auto px-4 py-8 flex flex-col items-center">
         <div className="text-center mb-12">
           <h2 className="text-4xl font-black text-slate-900 mb-4 tracking-tight">
-            今日好运，一触即发
+            {mainTitle}
           </h2>
-          <p className="text-slate-500 font-medium">点击中心按钮，开启你的专属惊喜</p>
+          <p className="text-slate-500 font-medium">{subTitle}</p>
         </div>
 
         <Wheel
@@ -224,6 +240,8 @@ export default function App() {
           showHistory={showHistory}
           siteName={siteName}
           siteIcon={siteIcon}
+          mainTitle={mainTitle}
+          subTitle={subTitle}
           onSave={handleSaveSettings}
           onClose={() => setIsAdminOpen(false)}
         />

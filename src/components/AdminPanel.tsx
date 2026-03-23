@@ -7,15 +7,19 @@ interface AdminPanelProps {
   showHistory: boolean;
   siteName: string;
   siteIcon: string;
-  onSave: (prizes: Prize[], showHistory: boolean, siteName: string, siteIcon: string) => void;
+  mainTitle: string;
+  subTitle: string;
+  onSave: (prizes: Prize[], showHistory: boolean, siteName: string, siteIcon: string, mainTitle: string, subTitle: string) => void;
   onClose: () => void;
 }
 
-export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, siteName, siteIcon, onSave, onClose }) => {
+export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, siteName, siteIcon, mainTitle, subTitle, onSave, onClose }) => {
   const [editedPrizes, setEditedPrizes] = useState<Prize[]>(prizes);
   const [editedShowHistory, setEditedShowHistory] = useState(showHistory);
   const [editedSiteName, setEditedSiteName] = useState(siteName);
   const [editedSiteIcon, setEditedSiteIcon] = useState(siteIcon);
+  const [editedMainTitle, setEditedMainTitle] = useState(mainTitle);
+  const [editedSubTitle, setEditedSubTitle] = useState(subTitle);
   const [showWeightWarning, setShowWeightWarning] = useState(false);
   const [prizeToDelete, setPrizeToDelete] = useState<number | null>(null);
 
@@ -57,7 +61,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
       return;
     }
 
-    onSave(editedPrizes, editedShowHistory, editedSiteName, editedSiteIcon);
+    onSave(editedPrizes, editedShowHistory, editedSiteName, editedSiteIcon, editedMainTitle, editedSubTitle);
     onClose();
   };
 
@@ -83,7 +87,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
       });
     }
 
-    onSave(normalizedPrizes, editedShowHistory, editedSiteName, editedSiteIcon);
+    onSave(normalizedPrizes, editedShowHistory, editedSiteName, editedSiteIcon, editedMainTitle, editedSubTitle);
     onClose();
   };
 
@@ -121,6 +125,29 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
                     onChange={(e) => setEditedSiteIcon(e.target.value)}
                     placeholder="例如：L 或 🎁"
                     maxLength={2}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">主标题</label>
+                  <input
+                    type="text"
+                    value={editedMainTitle}
+                    onChange={(e) => setEditedMainTitle(e.target.value)}
+                    placeholder="例如：今日好运，一触即发"
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-1">副标题</label>
+                  <input
+                    type="text"
+                    value={editedSubTitle}
+                    onChange={(e) => setEditedSubTitle(e.target.value)}
+                    placeholder="例如：点击中心按钮，开启你的专属惊喜"
                     className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                   />
                 </div>
