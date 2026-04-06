@@ -85,6 +85,17 @@ All application data (prizes, settings, history) is stored in a `data.json` file
 
 - **Admin Password**: `admin123` (You can change this in the Admin Panel).
 
+## 📄 License
+
+This project is licensed under the **Creative Commons Attribution-NonCommercial 4.0 International (CC BY-NC 4.0)** license. 
+
+You are free to:
+- **Share & Deploy**: Copy, redistribute, and deploy the application for your own personal use.
+
+Under the following terms:
+- **Attribution**: You must give appropriate credit and provide a link to the original author's GitHub repository.
+- **NonCommercial**: You may **NOT** use the material for commercial purposes or profit.
+
 ---
 
 # 🎡 大转盘抽奖系统 (Lucky Draw)
@@ -134,3 +145,11 @@ pm2 startup
 
 ## 🔐 默认凭证
 - **管理员密码**：`admin123`（可在管理后台中修改）
+
+## 📄 版权与开源协议 (License)
+
+本项目采用 **[署名-非商业性使用 4.0 国际 (CC BY-NC 4.0)](https://creativecommons.org/licenses/by-nc/4.0/)** 协议进行许可。
+
+- **允许**：自由转发、分享、部署以及个人使用。
+- **必须署名**：使用或分发本项目时，必须明确注明来源，并附上原作者的 GitHub 链接。
+- **禁止商用**：**严禁**将本项目用于任何商业盈利目的。
