@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Save, Plus, Trash2, AlertTriangle } from 'lucide-react';
 import { Prize } from '../types';
+import { Language, translations } from '../locales';
 
 interface AdminPanelProps {
   prizes: Prize[];
@@ -12,9 +13,11 @@ interface AdminPanelProps {
   adminPassword?: string;
   onSave: (prizes: Prize[], showHistory: boolean, siteName: string, siteIcon: string, mainTitle: string, subTitle: string, adminPassword?: string) => void;
   onClose: () => void;
+  language: Language;
 }
 
-export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, siteName, siteIcon, mainTitle, subTitle, adminPassword, onSave, onClose }) => {
+export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, siteName, siteIcon, mainTitle, subTitle, adminPassword, onSave, onClose, language }) => {
+  const t = translations[language];
   const [editedPrizes, setEditedPrizes] = useState<Prize[]>(prizes);
   const [editedShowHistory, setEditedShowHistory] = useState(showHistory);
   const [editedSiteName, setEditedSiteName] = useState(siteName);
@@ -59,13 +62,13 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
   const handleSave = () => {
     const hasEmptyName = editedPrizes.some(p => !p.name.trim());
     if (hasEmptyName) {
-      setValidationError("奖项名称不能为空");
+      setValidationError(t.nameCannotBeEmpty);
       return;
     }
 
     const hasInvalidWeight = editedPrizes.some(p => Number(p.weight) <= 0);
     if (hasInvalidWeight) {
-      setValidationError("奖项权重必须为大于0的正数");
+      setValidationError(t.weightMustBePositive);
       return;
     }
 
@@ -86,14 +89,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
     const hasEmptyName = editedPrizes.some(p => !p.name.trim());
     if (hasEmptyName) {
       setShowWeightWarning(false);
-      setValidationError("奖项名称不能为空");
+      setValidationError(t.nameCannotBeEmpty);
       return;
     }
 
     const hasInvalidWeight = editedPrizes.some(p => Number(p.weight) <= 0);
     if (hasInvalidWeight) {
       setShowWeightWarning(false);
-      setValidationError("奖项权重必须为大于0的正数");
+      setValidationError(t.weightMustBePositive);
       return;
     }
 
@@ -128,7 +131,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-2 sm:p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden flex flex-col max-h-[95vh] sm:max-h-[90vh]">
         <div className="p-4 sm:p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-          <h2 className="text-lg sm:text-xl font-semibold text-slate-800">奖项管理 (Admin)</h2>
+          <h2 className="text-lg sm:text-xl font-semibold text-slate-800">{t.adminPanel}</h2>
           <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
             <X className="w-5 h-5 text-slate-500" />
           </button>
@@ -136,27 +139,25 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
 
         <div className="p-4 sm:p-6 overflow-y-auto flex-1">
           <div className="mb-6 sm:mb-8 bg-white p-4 rounded-xl border border-slate-200 shadow-sm">
-            <h3 className="text-sm font-bold text-slate-800 mb-4 uppercase tracking-wider">全局设置</h3>
+            <h3 className="text-sm font-bold text-slate-800 mb-4 uppercase tracking-wider">{t.globalSettings}</h3>
             
             <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">网站名称</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">{t.siteName}</label>
                   <input
                     type="text"
                     value={editedSiteName}
                     onChange={(e) => setEditedSiteName(e.target.value)}
-                    placeholder="例如：Lucky Draw"
                     className="w-full px-3 py-2.5 sm:py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">网站图标 (文字或Emoji)</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">{t.siteIcon}</label>
                   <input
                     type="text"
                     value={editedSiteIcon}
                     onChange={(e) => setEditedSiteIcon(e.target.value)}
-                    placeholder="例如：L 或 🎁"
                     maxLength={2}
                     className="w-full px-3 py-2.5 sm:py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                   />
@@ -165,22 +166,20 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">主标题</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">{t.mainTitle}</label>
                   <input
                     type="text"
                     value={editedMainTitle}
                     onChange={(e) => setEditedMainTitle(e.target.value)}
-                    placeholder="例如：今日好运，一触即发"
                     className="w-full px-3 py-2.5 sm:py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">副标题</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">{t.subTitle}</label>
                   <input
                     type="text"
                     value={editedSubTitle}
                     onChange={(e) => setEditedSubTitle(e.target.value)}
-                    placeholder="例如：点击中心按钮，开启你的专属惊喜"
                     className="w-full px-3 py-2.5 sm:py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                   />
                 </div>
@@ -188,12 +187,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">管理员密码</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">{t.adminPassword}</label>
                   <input
                     type="text"
                     value={editedAdminPassword}
                     onChange={(e) => setEditedAdminPassword(e.target.value)}
-                    placeholder="设置新的管理密码"
+                    placeholder={t.setNewPassword}
                     className="w-full px-3 py-2.5 sm:py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
                   />
                 </div>
@@ -219,23 +218,23 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
                   className="text-sm font-medium text-slate-700 cursor-pointer select-none"
                   onClick={() => setEditedShowHistory(!editedShowHistory)}
                 >
-                  前台显示最近中奖记录
+                  {t.showHistoryFrontend}
                 </span>
               </div>
             </div>
           </div>
 
-          <h3 className="text-sm font-bold text-slate-800 mb-4 uppercase tracking-wider">奖项设置</h3>
+          <h3 className="text-sm font-bold text-slate-800 mb-4 uppercase tracking-wider">{t.prizeSettings}</h3>
           
           <div className="space-y-4">
             {/* Desktop Header */}
             <div className="hidden sm:grid grid-cols-12 gap-4 mb-2 text-sm font-medium text-slate-500 px-2">
               <div className="col-span-1 text-center">#</div>
-              <div className="col-span-4">奖项名称</div>
-              <div className="col-span-3">权重</div>
-              <div className="col-span-1 text-center">背景</div>
-              <div className="col-span-1 text-center">文字</div>
-              <div className="col-span-2 text-center">操作</div>
+              <div className="col-span-4">{t.prizeName}</div>
+              <div className="col-span-3">{t.weight}</div>
+              <div className="col-span-1 text-center">{t.background}</div>
+              <div className="col-span-1 text-center">{t.text}</div>
+              <div className="col-span-2 text-center">{t.actions}</div>
             </div>
 
             <div className="space-y-3">
@@ -263,7 +262,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
                   
                   {/* Name */}
                   <div className="w-full sm:col-span-4">
-                    <label className="block text-xs font-medium text-slate-500 mb-1.5 sm:hidden">名称</label>
+                    <label className="block text-xs font-medium text-slate-500 mb-1.5 sm:hidden">{t.name}</label>
                     <input
                       type="text"
                       value={prize.name}
@@ -274,7 +273,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
                   
                   {/* Weight */}
                   <div className="w-full sm:col-span-3">
-                    <label className="block text-xs font-medium text-slate-500 mb-1.5 sm:hidden">权重 (0-100)</label>
+                    <label className="block text-xs font-medium text-slate-500 mb-1.5 sm:hidden">{t.weight0_100}</label>
                     <input
                       type="number"
                       min="0"
@@ -288,7 +287,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
                   {/* Colors - Mobile */}
                   <div className="flex gap-4 w-full sm:hidden mt-1">
                     <div className="flex-1 flex flex-col">
-                      <label className="block text-xs font-medium text-slate-500 mb-1.5">背景色</label>
+                      <label className="block text-xs font-medium text-slate-500 mb-1.5">{t.bgColor}</label>
                       <input
                         type="color"
                         value={prize.color}
@@ -297,7 +296,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
                       />
                     </div>
                     <div className="flex-1 flex flex-col">
-                      <label className="block text-xs font-medium text-slate-500 mb-1.5">文字色</label>
+                      <label className="block text-xs font-medium text-slate-500 mb-1.5">{t.textColor}</label>
                       <input
                         type="color"
                         value={prize.textColor}
@@ -335,7 +334,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
                           ? 'text-slate-300 cursor-not-allowed' 
                           : 'text-red-400 hover:text-red-600 hover:bg-red-50 rounded'
                       }`}
-                      title={editedPrizes.length <= 2 ? "至少需要保留两个奖项" : "删除奖项"}
+                      title={editedPrizes.length <= 2 ? t.atLeastTwoPrizes : t.deletePrize}
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -350,11 +349,11 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
             className="mt-4 w-full py-3 border-2 border-dashed border-slate-300 text-slate-500 rounded-xl hover:border-indigo-500 hover:text-indigo-600 hover:bg-indigo-50 transition-all flex items-center justify-center gap-2 font-medium"
           >
             <Plus className="w-5 h-5" />
-            新增奖项
+            {t.addPrize}
           </button>
           
           <div className="mt-6 text-sm text-slate-500 bg-blue-50 p-3 rounded-lg border border-blue-100">
-            提示：权重总和必须为 100。至少需要保留 2 个奖项。
+            {t.weightTip}
           </div>
           
           {validationError && (
@@ -370,14 +369,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
             onClick={onClose}
             className="px-4 py-2 text-sm sm:text-base text-slate-600 hover:bg-slate-200 rounded-lg font-medium transition-colors"
           >
-            取消
+            {t.cancel}
           </button>
           <button
             onClick={handleSave}
             className="px-5 sm:px-6 py-2 text-sm sm:text-base bg-slate-800 text-white rounded-lg font-medium hover:bg-slate-700 transition-colors flex items-center gap-2 shadow-sm"
           >
             <Save className="w-4 h-4" />
-            保存设置
+            {t.saveSettings}
           </button>
         </div>
 
@@ -387,22 +386,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-amber-100 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                 <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-2">权重总和不为 100</h3>
+              <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-2">{t.totalWeightNot100}</h3>
               <p className="text-sm text-slate-600 mb-6">
-                当前所有奖项的权重总和为 <span className="font-bold text-slate-900">{editedPrizes.reduce((sum, p) => sum + Number(p.weight), 0)}</span>。大转盘需要权重总和严格等于 100 才能正常工作。
+                {t.currentTotalWeight} <span className="font-bold text-slate-900">{editedPrizes.reduce((sum, p) => sum + Number(p.weight), 0)}</span>{t.wheelRequires100}
               </p>
               <div className="flex flex-col gap-3">
                 <button
                   onClick={handleAutoFixAndSave}
                   className="w-full py-2.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl font-medium transition-colors"
                 >
-                  自动分配并保存
+                  {t.autoFixAndSave}
                 </button>
                 <button
                   onClick={() => setShowWeightWarning(false)}
                   className="w-full py-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl font-medium transition-colors"
                 >
-                  返回手动修改
+                  {t.returnToEdit}
                 </button>
               </div>
             </div>
@@ -415,22 +414,22 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({ prizes, showHistory, sit
               <div className="w-10 h-10 sm:w-12 sm:h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
                 <AlertTriangle className="w-5 h-5 sm:w-6 sm:h-6" />
               </div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-2">确认删除奖项？</h3>
+              <h3 className="text-base sm:text-lg font-bold text-slate-800 mb-2">{t.confirmDeletion}</h3>
               <p className="text-sm text-slate-600 mb-6">
-                您确定要删除奖项“<span className="font-bold text-slate-900">{editedPrizes[prizeToDelete]?.name}</span>”吗？此操作无法撤销。
+                {t.areYouSureDelete}<span className="font-bold text-slate-900">{editedPrizes[prizeToDelete]?.name}</span>{t.cannotBeUndone}
               </p>
               <div className="flex gap-3">
                 <button
                   onClick={() => setPrizeToDelete(null)}
                   className="flex-1 py-2.5 text-slate-600 bg-slate-100 hover:bg-slate-200 rounded-xl font-medium transition-colors"
                 >
-                  取消
+                  {t.cancel}
                 </button>
                 <button
                   onClick={confirmRemovePrize}
                   className="flex-1 py-2.5 bg-red-600 text-white hover:bg-red-700 rounded-xl font-medium transition-colors"
                 >
-                  确认删除
+                  {t.confirmDelete}
                 </button>
               </div>
             </div>

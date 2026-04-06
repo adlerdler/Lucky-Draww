@@ -1,19 +1,22 @@
 import React from 'react';
 import { HistoryItem } from '../types';
 import { Clock, Trophy } from 'lucide-react';
+import { Language, translations } from '../locales';
 
 interface HistoryProps {
   history: HistoryItem[];
+  language: Language;
 }
 
-export const History: React.FC<HistoryProps> = ({ history }) => {
+export const History: React.FC<HistoryProps> = ({ history, language }) => {
+  const t = translations[language];
   if (history.length === 0) return null;
 
   return (
     <div className="w-full max-w-md mx-auto mt-12">
       <div className="flex items-center gap-2 mb-4 text-slate-600 font-medium px-2">
         <Trophy className="w-5 h-5 text-amber-500" />
-        <h3 className="text-lg">最近中奖记录</h3>
+        <h3 className="text-lg">{t.recentWinners}</h3>
       </div>
       
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
@@ -28,7 +31,7 @@ export const History: React.FC<HistoryProps> = ({ history }) => {
               </div>
               <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium shrink-0">
                 <Clock className="w-3.5 h-3.5" />
-                {new Date(item.timestamp).toLocaleString('zh-CN', {
+                {new Date(item.timestamp).toLocaleString(language === 'zh' ? 'zh-CN' : 'en-US', {
                   month: '2-digit',
                   day: '2-digit',
                   hour: '2-digit',

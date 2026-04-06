@@ -1,14 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Settings, Lock, X, Loader2 } from 'lucide-react';
+import { Settings, Lock, X, Loader2, Globe } from 'lucide-react';
 import { Wheel } from './components/Wheel';
 import { AdminPanel } from './components/AdminPanel';
 import { ResultModal } from './components/ResultModal';
 import { History } from './components/History';
 import { INITIAL_PRIZES, ADMIN_PASSWORD } from './constants';
 import { Prize, HistoryItem } from './types';
+import { Language, translations } from './locales';
 
 export default function App() {
+  const [language, setLanguage] = useState<Language>(() => {
+    const saved = localStorage.getItem('lucky_draw_language');
+    return (saved as Language) || 'zh';
+  });
+  const t = translations[language];
+
   const [isLoading, setIsLoading] = useState(true);
   const [prizes, setPrizes] = useState<Prize[]>(INITIAL_PRIZES);
   const [history, setHistory] = useState<HistoryItem[]>([]);
@@ -41,6 +48,10 @@ export default function App() {
         setIsLoading(false);
       });
   }, []);
+
+  useEffect(() => {
+    localStorage.setItem('lucky_draw_language', language);
+  }, [language]);
 
   useEffect(() => {
     document.title = siteName;
@@ -126,7 +137,7 @@ export default function App() {
       setPasswordInput('');
       setAuthError('');
     } else {
-      setAuthError('密码错误，请重试');
+      setAuthError(t.incorrectPassword);
     }
   };
 
@@ -170,13 +181,23 @@ export default function App() {
           </span>
           {siteName}
         </h1>
-        <button
-          onClick={() => setIsAuthModalOpen(true)}
-          className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
-          title="管理后台"
-        >
-          <Settings className="w-6 h-6" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setLanguage(language === 'zh' ? 'en' : 'zh')}
+            className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200 rounded-full transition-colors flex items-center gap-1.5"
+            title="Switch Language"
+          >
+            <Globe className="w-4 h-4" />
+            {t.language}
+          </button>
+          <button
+            onClick={() => setIsAuthModalOpen(true)}
+            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-200 rounded-full transition-colors"
+            title="管理后台"
+          >
+            <Settings className="w-6 h-6" />
+          </button>
+        </div>
       </header>
 
       {/* Main Content */}
@@ -193,9 +214,10 @@ export default function App() {
           isSpinning={isSpinning}
           rotation={rotation}
           onSpin={handleSpin}
+          language={language}
         />
 
-        {showHistory && <History history={history} />}
+        {showHistory && <History history={history} language={language} />}
       </main>
 
       {/* Admin Auth Modal */}
@@ -217,11 +239,11 @@ export default function App() {
                 <Lock className="w-8 h-8" />
               </div>
             </div>
-            <h3 className="text-lg sm:text-xl font-bold text-center mb-4 sm:mb-6 text-slate-800">管理员验证</h3>
+            <h3 className="text-lg sm:text-xl font-bold text-center mb-4 sm:mb-6 text-slate-800">{t.adminAuth}</h3>
             <form onSubmit={handleAdminAuth}>
               <input
                 type="password"
-                placeholder="请输入管理密码"
+                placeholder={t.enterAdminPassword}
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-slate-800 mb-2 text-center text-base sm:text-lg tracking-widest"
@@ -232,7 +254,7 @@ export default function App() {
                 type="submit"
                 className="w-full py-3 bg-slate-800 text-white rounded-xl font-semibold hover:bg-slate-700 transition-colors mt-4"
               >
-                进入后台
+                {t.enterAdminPanel}
               </button>
             </form>
           </div>
@@ -251,6 +273,7 @@ export default function App() {
           adminPassword={adminPassword}
           onSave={handleSaveSettings}
           onClose={() => setIsAdminOpen(false)}
+          language={language}
         />
       )}
 
@@ -259,12 +282,13 @@ export default function App() {
         isOpen={showResultModal}
         prizeName={currentResult}
         onClose={() => setShowResultModal(false)}
+        language={language}
       />
 
       {/* Footer */}
       <footer className="w-full py-6 mt-auto text-center text-sm text-slate-400">
         <p>
-          &copy; 2026 版权所有{' '}
+          &copy; 2026 {t.allRightsReserved}{' '}
           <a
             href="https://blog.a1l.org"
             target="_blank"

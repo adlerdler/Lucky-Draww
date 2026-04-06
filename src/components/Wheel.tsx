@@ -1,15 +1,18 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { Prize } from '../types';
+import { Language, translations } from '../locales';
 
 interface WheelProps {
   prizes: Prize[];
   isSpinning: boolean;
   rotation: number;
   onSpin: () => void;
+  language: Language;
 }
 
-export const Wheel: React.FC<WheelProps> = ({ prizes, isSpinning, rotation, onSpin }) => {
+export const Wheel: React.FC<WheelProps> = ({ prizes, isSpinning, rotation, onSpin, language }) => {
+  const t = translations[language];
   const numSlices = prizes.length;
   const sliceAngle = 360 / numSlices;
   const radius = 150;
@@ -88,7 +91,7 @@ export const Wheel: React.FC<WheelProps> = ({ prizes, isSpinning, rotation, onSp
           disabled={isSpinning}
           className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-slate-800 text-white font-bold text-xl sm:text-2xl shadow-xl hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed z-10 border-4 border-white flex items-center justify-center"
         >
-          GO
+          {isSpinning ? t.spinning : t.spin}
         </button>
       </div>
     </div>

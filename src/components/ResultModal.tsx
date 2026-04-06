@@ -1,14 +1,17 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Gift } from 'lucide-react';
+import { Language, translations } from '../locales';
 
 interface ResultModalProps {
   isOpen: boolean;
   prizeName: string;
   onClose: () => void;
+  language: Language;
 }
 
-export const ResultModal: React.FC<ResultModalProps> = ({ isOpen, prizeName, onClose }) => {
+export const ResultModal: React.FC<ResultModalProps> = ({ isOpen, prizeName, onClose, language }) => {
+  const t = translations[language];
   return (
     <AnimatePresence>
       {isOpen && (
@@ -39,10 +42,10 @@ export const ResultModal: React.FC<ResultModalProps> = ({ isOpen, prizeName, onC
             </div>
 
             <h3 className="text-2xl font-bold text-slate-800 mb-2">
-              恭喜中奖！
+              {t.congratulations}
             </h3>
             <p className="text-slate-500 mb-6">
-              您抽中了
+              {t.youWon}
             </p>
             
             <div className="bg-slate-50 border border-slate-100 rounded-2xl p-4 mb-8">
@@ -55,7 +58,7 @@ export const ResultModal: React.FC<ResultModalProps> = ({ isOpen, prizeName, onC
               onClick={onClose}
               className="w-full py-3 px-6 bg-slate-800 text-white rounded-xl font-semibold text-lg hover:bg-slate-700 active:scale-95 transition-all shadow-md"
             >
-              收下奖品
+              {t.ok}
             </button>
           </motion.div>
         </div>
