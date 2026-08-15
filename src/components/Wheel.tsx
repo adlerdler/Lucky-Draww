@@ -89,7 +89,7 @@ export const Wheel: React.FC<WheelProps> = ({ prizes, isSpinning, rotation, onSp
         <button
           onClick={onSpin}
           disabled={isSpinning}
-          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-slate-800 text-white font-bold text-xl sm:text-2xl shadow-xl hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed z-10 border-4 border-white flex items-center justify-center"
+          className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-slate-800 text-white font-bold text-sm sm:text-base leading-tight text-center px-2 shadow-xl hover:bg-slate-700 active:scale-95 transition-all disabled:opacity-50 disabled:cursor-not-allowed z-10 border-4 border-white flex items-center justify-center"
         >
           {isSpinning ? t.spinning : t.spin}
         </button>
