@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
-import { Settings, Lock, X, Loader2, Globe } from 'lucide-react';
+import { Settings, Lock, X, Loader2, Globe, Volume2, VolumeX } from 'lucide-react';
 import { Wheel } from './components/Wheel';
 import { AdminPanel } from './components/AdminPanel';
 import { ResultModal } from './components/ResultModal';
@@ -8,6 +8,7 @@ import { History } from './components/History';
 import { INITIAL_PRIZES, ADMIN_PASSWORD } from './constants';
 import { Prize, HistoryItem } from './types';
 import { Language, translations } from './locales';
+import { playSpinStart, startSpinningTicks, playWinSound } from './utils/audio';
 
 export default function App() {
   const [language, setLanguage] = useState<Language>(() => {
@@ -26,6 +27,7 @@ export default function App() {
   const [subTitle, setSubTitle] = useState<string>('点击中心按钮，开启你的专属惊喜');
   const [adminPassword, setAdminPassword] = useState<string>(ADMIN_PASSWORD);
 
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
   const [isSpinning, setIsSpinning] = useState(false);
   const [rotation, setRotation] = useState(0);
 
@@ -81,6 +83,11 @@ export default function App() {
     if (isSpinning) return;
     setIsSpinning(true);
 
+    if (soundEnabled) {
+      playSpinStart();
+      startSpinningTicks(7000);
+    }
+
     const totalWeight = prizes.reduce((sum, p) => sum + p.weight, 0);
     let random = Math.random() * totalWeight;
     let winningIndex = prizes.length - 1;
@@ -94,12 +101,6 @@ export default function App() {
     }
 
     const sliceAngle = 360 / prizes.length;
-    // Calculate target rotation to land exactly on the winning slice
-    // We want the winning slice to be at the top (-90 degrees in SVG, which is 0 degrees in CSS rotation of the wheel if we didn't rotate it, but we rotated the SVG by -90)
-    // Actually, slice 0 is centered at 0 degrees in SVG coordinates.
-    // SVG is rotated by -90 degrees. So slice 0 is at -90 degrees (top).
-    // If we want slice `i` to be at the top, we need to rotate the wheel by `-i * sliceAngle`.
-    // Let's add 8 full rotations (2880 degrees) for a longer, more dynamic spinning effect.
     const randomOffset = (Math.random() - 0.5) * sliceAngle * 0.8;
     const targetRotation = rotation + (360 - (rotation % 360)) + 2880 - (winningIndex * sliceAngle) + randomOffset;
 
@@ -111,6 +112,10 @@ export default function App() {
       setCurrentResult(wonPrize.name);
       setShowResultModal(true);
       
+      if (soundEnabled) {
+        playWinSound();
+      }
+
       confetti({
         particleCount: 150,
         spread: 70,
@@ -182,6 +187,13 @@ export default function App() {
           {siteName}
         </h1>
         <div className="flex items-center gap-2">
+          <button
+            onClick={() => setSoundEnabled(!soundEnabled)}
+            className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-200 rounded-full transition-colors"
+            title={soundEnabled ? '音效已开启' : '音效已关闭'}
+          >
+            {soundEnabled ? <Volume2 className="w-5 h-5" /> : <VolumeX className="w-5 h-5 text-slate-400" />}
+          </button>
           <button
             onClick={() => setLanguage(language === 'zh' ? 'en' : 'zh')}
             className="px-3 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-200 rounded-full transition-colors flex items-center gap-1.5"
